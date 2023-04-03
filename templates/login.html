@@ -35,6 +35,30 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/materialize-css@1.0.0/dist/css/materialize.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/app.min.css') }}">
+
+    <style>
+      .download-logo {
+        height: 40px;
+        width: 40px;
+        cursor: pointer;
+      }
+
+      .discord-info {
+        direction: rtl;
+        font-size: 18px;
+      }
+
+      @media (max-width: 768px) {
+        .download-logo {
+          height: 20px;
+          width: 20px;
+        }
+        .discord-info {
+          font-size: 14px;
+        }
+      }
+
+    </style>
   </head>
 
   <body>
@@ -72,6 +96,8 @@
               {% if donate_url %}
               <li><a href="{{ donate_url }}" class="hide-on-small-only" title="{{ i18n('Donate') }}" target="_blank"><i class="material-icons">attach_money</i></a></li>
               {% endif %}
+              {% if logged_in %}
+              <li><a href="/donate" class="hide-on-small-only" title="Donate" target="_blank"><i class="material-icons">attach_money</i></a></li>
               {% if madmin_url %}
               <li><a href="{{ madmin_url }}" class="hide-on-small-only" title="MADmin" target="_blank"><i class="material-icons">phone_android</i></a></li>
               {% endif %}
@@ -81,6 +107,7 @@
               {% if quest_page %}
               <li><a href="{{ url_for('quest_page') }}" class="hide-on-small-only" title="{{ i18n('Quests') }}"><i class="material-icons">explore</i></a></li>
               {% endif %}
+			  {% endif %}
             </ul>
           </div>
         </nav>
@@ -102,6 +129,8 @@
       <li class="divider" tabindex="-1"></li>
       {% if donate_url %}
       <li><a href="{{ donate_url }}" target="_blank"><i class="material-icons">attach_money</i>{{ i18n('Donate') }}</a></li>
+      {% if logged_in %}
+      <li><a href="/donate" target="_blank"><i class="material-icons">attach_money</i>Donate</a></li>
       {% endif %}
       {% if patreon_url %}
       <li><a href="{{ patreon_url }}" target="_blank"><i class="fab fa-patreon"></i>Patreon</a></li>
@@ -137,12 +166,32 @@
     <div class="container">
       <h5>{{ i18n('Log in to') }} {{ map_title }}</h5>
       {{ i18n('Log in with') }}:
+    <div class="container" align="center">
+      <h5>{{ map_title }} התחבר למפה </h5>
+      <div align="center" class="discord-info">
+        <p>
+        על מנת להתחבר למפה ולקבל את הפונקציונאליות הדרושה, עליכם להתחבר דרך <a href="https://discord.com/" target="_blank">דיסקורד</a>.
+        </p>
+        <p>
+          דיסקורד זוהי תוכנת מסרים כגון וואטסאפ, זמינה גם לנייד וגם למחשב
+        </p>
+        <p>
+          <a href="https://discord.com/api/download?platform=osx"><img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="download-logo" /></a>
+          <a href="https://discord.com/api/download?platform=win"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Windows_logo_-_2012.svg" class="download-logo" /></a>
+          <a href="https://play.google.com/store/apps/details?id=com.discord&hl=en_US&gl=US" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Google_Play_symbol.svg" class="download-logo"/></a>
+          <a href="https://apps.apple.com/us/app/discord-talk-chat-hang-out/id985746746" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_%28iOS%29.svg" class="download-logo"/></a>
+        </p>
+        <p>
+          לאחר התקנת האפליקציה, צריך להצטרף לשרת הדיסקורד של המפות <a href="{{ discord_url }}">כאן</a>
+        </p>
+      </div>
+      :התחבר באמצעות
       <div class="collection">
         {% if basic_auth %}
-        <a href="{{ url_for('basic_login_page') }}" class="collection-item">{{ i18n('Username and password') }}</a>
+        <a href="{{ url_for('basic_login_page') }}" class="collection-item">Username and password</a>
         {% endif %}
-        {% if discord_auth %}
-        <a href="{{ url_for('login_page') }}/discord" class="collection-item">Discord</a>
+        {% if discord_auth %}x
+        <a href="{{ url_for('login_page') }}/discord" class="collection-item"><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/Discord_Color_Text_Logo.svg" height="60"/></a>
         {% endif %}
         {% if telegram_auth %}
         <a href="{{ url_for('telegram_login_page') }}" class="collection-item">Telegram</a>

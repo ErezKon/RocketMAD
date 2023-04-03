@@ -71,6 +71,12 @@
       .map-container .leaflet-marker-icon.marker-highlight-level {
         filter: drop-shadow(0px 0px var(--blur-radius) var(--color-level));
       }
+
+      @media(max-width:767px) {
+        .map-title {
+          display: none;
+        }
+      }
     </style>
     {% endif %}
   </head>
@@ -85,10 +91,14 @@
               <li>
                 <a href="{{ url_for('map_page') }}" class="brand-logo">
                   {{ map_title }}{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
+                  <span class="map-title">{{ map_title }}</span>{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
                 </a>
               </li>
             </ul>
             <ul class="right">
+              {% if settings.username %}
+              <li style="color: black; text-decoration: underline; font-weight: bold;">Logged in as {{settings.username}}</li>
+              {% endif %}
               {% set use_dropdown = discord_url or messenger_url or telegram_url or whatsapp_url or patreon_url or donate_url or madmin_url or admin or pokemon_history_page or quest_page or client_auth %}
               <li><a data-target="weather-modal" id="weather-button" class="modal-trigger" title="Weather" style="display:none;"><i class="material-icons"></i></a></li>
               {% if use_dropdown %}
@@ -126,6 +136,7 @@
               {% endif %}
               {% if client_auth %}
               {% if logged_in %}
+              <li><a href="{{ url_for('donate_page') }}" class="hide-on-small-only" title="Donate" ><i class="material-icons">attach_money</i></a></li>
               <li><a href="{{ url_for('logout') }}" class="hide-on-small-only" title="{{ i18n('Log out') }}"><i class="material-icons">exit_to_app</i></a></li>
               {% else %}
               <li><a href="{{ url_for('login_page') }}" class="hide-on-small-only" title="{{ i18n('Log in') }}"><i class="material-icons">account_box</i></a></li>
@@ -162,6 +173,7 @@
       {% if donate_url %}
       <li><a href="{{ donate_url }}" target="_blank"><i class="material-icons">attach_money</i>{{ i18n('Donate') }}</a></li>
       {% endif %}
+      <li><a href="{{ url_for('donate_page') }}"><i class="material-icons">attach_money</i>{{ i18n('Donate') }}</a></li>
       {% if patreon_url %}
       <li><a href="{{ patreon_url }}" target="_blank"><i class="fab fa-patreon"></i>Patreon</a></li>
       {% endif %}

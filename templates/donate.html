@@ -1,0 +1,630 @@
+<!-- Set jinja variables here -->
+{% if custom_favicon %}
+  {% set appicons_dir = url_for('static', filename='images/appicons/custom/') %}
+{% else %}
+  {% set appicons_dir = url_for('static', filename='images/appicons/') %}
+{% endif %}
+
+<!DOCTYPE html>
+<html lang="{{lang}}">
+  <head>
+    {% if analytics_id %}
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ analytics_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', '{{ analytics_id }}')
+    </script>
+    {% endif %}
+    <title>{{ map_title }} - Donate</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ appicons_dir }}apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ appicons_dir }}favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ appicons_dir }}favicon-16x16.png">
+    <link rel="manifest" href="{{ appicons_dir }}site.webmanifest">
+    <link rel="mask-icon" href="{{ appicons_dir }}safari-pinned-tab.svg" color="black">
+    <link rel="shortcut icon" href="{{ appicons_dir }}favicon.ico">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="{{ appicons_dir }}browserconfig.xml') }}">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/materialize-css@1.0.0/dist/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/app.min.css') }}">
+    <!--<link rel="stylesheet" href="/node_modules/angular-material/angular-material.css">-->
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/materialize-css@1.0.0/dist/js/materialize.min.js"></script>
+     <!-- Angular Material Dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-messages.min.js"></script>
+
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <!-- Angular Material Javascript now available via Google CDN; version 1.1.24 used here -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.24/angular-material.min.js"></script>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>-->
+
+<!--    <script src="https://paypal.com/sdk/js?client-id=AZIy-X6ToToAvFeZNn8dFHHl-6zbcwwY8roXVUlOUUhldjnGIvzpXmU9Zm75Dr19eMc2YN69Pd-10Z2M&merchant-id=E6TVWNMEPFSFS&currency=ILS&vault=true"></script>-->
+<!--    <script src="https://paypal.com/sdk/js?client-id=AZIy-X6ToToAvFeZNn8dFHHl-6zbcwwY8roXVUlOUUhldjnGIvzpXmU9Zm75Dr19eMc2YN69Pd-10Z2M&merchant-id=E6TVWNMEPFSFS&currency=ILS"></script>-->
+<!--    <script src="https://paypal.com/sdk/js?client-id=AZIy-X6ToToAvFeZNn8dFHHl-6zbcwwY8roXVUlOUUhldjnGIvzpXmU9Zm75Dr19eMc2YN69Pd-10Z2M&merchant-id=E6TVWNMEPFSFS"></script>-->
+
+    <!-- !!! PROD !!! -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AeMBBeU-KJJ2a9fbbhrBUjKG_tIXfctjsPF8LeOnJLhuKwG7L_nMRV6iNGdUlcSAJTaV0Hn9YU5nq56I"></script>
+    <!-- SANDBOX -->
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id=AeEKz-Zx8_OnNPsQaM5ocpgqX5N-ToMIT8ck7YvuOoVnvcPBcTjLMpjISnJw3WY0qdNrwFGIwV_5fGHZ"></script> -->
+    <style>
+      .username {
+          display: none;
+      }
+
+      .payment-card {
+        cursor: pointer;
+        display: inline-block;
+        margin: 15px;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 6px 3px #c7c5c5;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .payment-card.selected {
+        box-shadow: 0px 0px 11px 4px #41dc7b;
+      }
+
+      .payment-card:hover {
+        box-shadow: 0px 0px 13px 3px #417fdc;
+      }
+
+      .payment-details {
+        font-style: italic;
+        padding: 25px;
+        font-size: 22px;
+        font-weight: bold;
+        line-height: 1.75em;
+        direction: rtl;
+      }
+
+      .payment-details .perks ul {
+        width: 90%;
+        margin: auto;
+        list-style-type: disc !important;
+        font-size: 18px;
+        line-height: 2em;
+        columns: 3;
+      }
+      .payment-details .perks ul li {
+        list-style-type: disc !important;
+      }
+
+      .disclaimer {
+        font-size: 18px;
+        font-weight: 700;
+        width: 60%;
+        line-height: 2em;
+        margin: auto;
+      }
+
+      .hide {
+        display: none;
+      }
+
+      .copy-icon {
+        cursor: pointer;
+      }
+
+      .payment-executed {
+        margin-top: 20px;
+        line-height: 2em;
+        font-size: 16px;
+        font-weight: bold;
+        direction: rtl;
+      }
+
+      .redeem-input {
+        width: 400px;
+      }
+
+      .redeem-btn {
+        display: contents;
+      }
+
+      .donation-too-low {
+        color:red;
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .disabled {
+        pointer-events: none;
+      }
+
+      ul li {
+        list-style-type: disc !important;
+      }
+      .acceptance {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .nav-wrapper li {
+        //display: none !important;
+        list-style-type: none!important;
+      }
+
+      .brand-logo {
+        padding-top: 15px;
+      }
+
+      @media (max-width: 767px) {
+        .map-title {
+          display: none;
+        }
+
+        .payment-details .perks ul {
+          columns: 1;
+          font-size: 14px;
+          line-height: 1.25em;
+        }
+
+        .disclaimer {
+          line-height: 1.5em;
+        }
+      }
+    </style>
+
+  </head>
+
+  <script>
+    angular.module('ngClipboard', [])
+
+    .factory('ngClipboard', function($compile,$rootScope,$document) {
+        return {
+            toClipboard: function(element){
+
+            var copyElement = angular.element('<span id="ngClipboardCopyId">'+element+'</span>');
+            var body = $document.find('body').eq(0);
+            body.append($compile(copyElement)($rootScope));
+
+            var ngClipboardElement = angular.element(document.getElementById('ngClipboardCopyId'));
+            console.log(ngClipboardElement);
+            var range = document.createRange();
+
+            range.selectNode(ngClipboardElement[0]);
+
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            var successful = document.execCommand('copy');
+
+            var msg = successful ? 'successful' : 'unsuccessful';
+            console.log('Copying text command was ' + msg);
+            window.getSelection().removeAllRanges();
+
+            copyElement.remove();
+        }
+    }
+    })
+
+    .directive('ngCopyable', function() {
+        return {
+            restrict: 'A',
+            link:link
+        };
+        function link(scope, element, attrs) {
+            element.bind('click',function(){
+
+                var range = document.createRange();
+                range.selectNode(element[0]);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                var successful = document.execCommand('copy');
+
+                var msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Copying text command was ' + msg);
+                window.getSelection().removeAllRanges();
+            });
+        }
+
+    });
+  </script>
+  <script>
+    var App = angular.module('donate-app', ['ngClipboard', 'ngMaterial', 'ngMessages']);
+    App
+    .directive('copyToClipboard', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, elem, attrs) {
+                elem.click(function () {
+                    if (attrs.copyToClipboard) {
+                        var $temp_input = $("<input>");
+                        $("body").append($temp_input);
+                        $temp_input.val(attrs.copyToClipboard).select();
+                        document.execCommand("copy");
+                        $temp_input.remove();
+                    }
+                });
+            }
+        };
+    });
+    App.controller('testCtrl', function ($scope, $http, $window, $rootScope) {
+      $scope.amount = 10;
+      $scope.freeDonation = null;
+      $scope.redeem = 'placeholder';
+      $scope.executed = 0;
+      $scope.acceptTerms = false;
+
+      $scope.isBasic = true;
+      $scope.isAdvanced = false;
+      $scope.isPremium = false;
+
+      $scope.donationTooLow = false;
+
+      $scope.price = 10;
+
+      $scope.redeemClicked = function(data) {
+        console.log(`data = ${data}`);
+        console.log(`redeem = ${$scope.redeem}`);
+      }
+
+      $scope.setAuth = function(auth) {
+        $scope.donationTooLow = auth < 10;
+        $scope.isBasic = auth >= 10 && auth < 20;
+        $scope.isAdvanced = auth >= 20 && auth < 30;
+        $scope.isPremium = auth >= 30;
+      }
+
+      $scope.selectPrice = function(priceId) {
+        //const boxes = document.getElementsByClassName('payment-card');
+        //for(let i = 0; i < boxes.length; i++) {
+        //  boxes[i].classList.remove('selected');
+        //}
+        //const box = document.getElementById(priceId);
+        //box.classList.add('selected');
+
+        const paymentDetails = document.getElementById('payment-details');
+
+        if(priceId === 'ten') $scope.price = 10;
+        if(priceId === 'twenty') $scope.price = 20;
+        if(priceId === 'thirty') $scope.price = 30;
+
+        $scope.setAuth($scope.price);
+      }
+
+      $scope.copy = function() {
+        const el = document.getElementById('copy-btn');
+        el.innerHTML = $scope.redeem;
+        el.click();
+        el.innerHTML = "";
+      }
+
+      var createPaymentUrl = 'https://pogob7.net/create-payment';
+      var executePaymentUrl = 'https://pogob7.net/execute-payment';
+      paypal.Button.render({
+        env: 'production', // 'sandbox' Or 'production'
+        // Set up the payment:
+        // 1. Add a payment callback
+        payment: function(data, actions) {
+          if($scope.freeDonation) {
+            if($scope.freeDonation < 10) {
+              $scope.price = 10;
+            }
+            else {
+              $scope.price = $scope.freeDonation;
+            }
+          }
+          // 2. Make a request to your server
+          const reqData = {price: $scope.price};
+          console.log(reqData);
+          return actions.request.post(createPaymentUrl, reqData)
+            .then(function(res) {
+              // 3. Return res.paymentID from the response
+              return res.paymentID;
+            });
+        },
+        // Execute the payment:
+        // 1. Add an onAuthorize callback
+        onAuthorize: function(data, actions) {
+          // 2. Make a request to your server
+          return actions.request.post(executePaymentUrl, {
+            paymentID: data.paymentID,
+            payerID:   data.payerID
+          })
+            .then(function(res) {
+              // 3. Show the buyer a confirmation message.
+              debugger;
+              if(res.success) {
+                $scope.redeem = `!redeem ${res.paymentID}`;
+                //$scope.switch();
+                const btn = document.getElementById('switch')
+                btn.click();
+              }
+            });
+        }
+      }, '#paypal-button');
+
+      $scope.switch = function() {
+        if($scope.executed === 0) $scope.executed = 1;
+        else if($scope.executed === 1) $scope.executed = 0;
+      }
+
+      $scope.$watch('freeDonation', function(newV, oldV) {
+        if(newV) {
+          $scope.setAuth(newV);
+        }
+      });
+
+      $scope.onAcceptTerms = function(event) {
+        if($scope.acceptTerms) {
+          console.log('accepted')
+        } else {
+          console.log('not accepted');
+        }
+      }
+    });
+  </script>
+  <body ng-app="donate-app">
+    <header>
+      <div class="navbar-fixed">
+        <nav>
+          <div class="nav-wrapper">
+            <ul>
+              <li>
+                <a href="{{ url_for('map_page') }}" class="brand-logo">
+                  {{ map_title }}{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
+                </a>
+              </li>
+            </ul>
+            <ul class="right">
+              {% if settings.username %}
+              <li style="color: black; text-decoration: underline; font-weight: bold; padding-top: 15px;">Logged in as {{settings.username}}</li>
+              {% endif %}
+              {% set use_dropdown = discord_url or messenger_url or telegram_url or whatsapp_url or patreon_url or donate_url or madmin_url or admin or pokemon_history_page or quest_page %}
+              <li><a data-target="weather-modal" id="weather-button" class="modal-trigger" title="Weather" style="display:none;"><i class="material-icons"></i></a></li>
+              {% if use_dropdown %}
+              <li><a class="dropdown-trigger hide-on-med-and-up" href="#" data-target="navbar-dropdown"><i class="material-icons">more_vert</i></a></li>
+              {% endif %}
+              {% if discord_url %}
+              <li><a href="{{ discord_url }}" class="hide-on-small-only" title="Discord" target="_blank"><i class="fab fa-discord material-icons"></i></a></li>
+              {% endif %}
+              {% if messenger_url %}
+              <li><a href="{{ messenger_url }}" class="hide-on-small-only" title="Messenger" target="_blank"><i class="fab fa-facebook-messenger material-icons"></i></a></li>
+              {% endif %}
+              {% if telegram_url %}
+              <li><a href="{{ telegram_url }}" class="hide-on-small-only" title="Telegram" target="_blank"><i class="fab fa-telegram-plane material-icons"></i></a></li>
+              {% endif %}
+              {% if whatsapp_url %}
+              <li><a href="{{ whatsapp_url }}" class="hide-on-small-only" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp material-icons"></i></a></li>
+              {% endif %}
+              {% if patreon_url %}
+              <li><a href="{{ patreon_url }}" class="hide-on-small-only" title="Patreon" target="_blank"><i class="fab fa-patreon material-icons"></i></a></li>
+              {% endif %}
+              {% if madmin_url %}
+              <li><a href="{{ madmin_url }}" class="hide-on-small-only" title="MADmin" target="_blank"><i class="material-icons">phone_android</i></a></li>
+              {% endif %}
+              {% if admin %}
+              <li><a href="{{ url_for('admin_page') }}" class="hide-on-small-only" title="Admin"><i class="material-icons">dashboard</i></a></li>
+              {% endif %}
+              {% if pokemon_history_page %}
+              <li><a href="{{ url_for('pokemon_history_page') }}" class="hide-on-small-only" title="Pokémon history"><i class="material-icons">pets</i></a></li>
+              {% endif %}
+              {% if quest_page %}
+              <li><a href="{{ url_for('quest_page') }}" class="hide-on-small-only" title="Quests"><i class="material-icons">explore</i></a></li>
+              {% endif %}
+              {% if client_auth %}
+              {% if logged_in %}
+              <li><a href="/donate" class="hide-on-small-only" title="{{ i18n('Donate') }}" target="_blank"><i class="material-icons">attach_money</i></a></li>
+              <li><a href="{{ url_for('logout') }}" class="hide-on-small-only" title="Log out"><i class="material-icons">exit_to_app</i></a></li>
+              {% else %}
+              <li><a href="{{ url_for('login_page') }}" class="hide-on-small-only" title="Log in"><i class="material-icons">account_box</i></a></li>
+              {% endif %}
+              {% endif %}
+              {% if settings.statsSidebar %}
+              <li><a href="javascript:void(0);" data-target="stats-sidenav" class="sidenav-trigger" title="{{ i18n('Live stats') }}"><i class="material-icons">equalizer</i></a></li>
+              {% endif %}
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    {% if use_dropdown %}
+    <ul id="navbar-dropdown" class="dropdown-content">
+      {% if pokemon_history_page %}
+      <li><a href="{{ url_for('pokemon_history_page') }}"><i class="material-icons">pets</i>Pokémon history</a></li>
+      {% endif %}
+      {% if quest_page %}
+      <li><a href="{{ url_for('quest_page') }}"><i class="material-icons">explore</i>Quests</a></li>
+      {% endif %}
+      {% if madmin_url %}
+      <li><a href="{{ madmin_url }}" target="_blank"><i class="material-icons">phone_android</i>MADmin</a></li>
+      {% endif %}
+      {% if donate_url or patreon_url %}
+      <li class="divider" tabindex="-1"></li>
+      {% if donate_url %}
+      <li><a href="{{ donate_url }}" target="_blank"><i class="material-icons">attach_money</i>Donate</a></li>
+      {% endif %}
+      {% if patreon_url %}
+      <li><a href="{{ patreon_url }}" target="_blank"><i class="fab fa-patreon"></i>Patreon</a></li>
+      {% endif %}
+      {% endif %}
+      {% if discord_url or messenger_url or telegram_url or whatsapp_url %}
+      <li class="divider" tabindex="-1"></li>
+      {% if discord_url %}
+      <li><a href="{{ discord_url }}" target="_blank"><i class="fab fa-discord"></i>Discord</a></li>
+      {% endif %}
+      {% if messenger_url %}
+      <li><a href="{{ messenger_url }}" target="_blank"><i class="fab fa-facebook-messenger"></i>Messenger</a></li>
+      {% endif %}
+      {% if telegram_url %}
+      <li><a href="{{ telegram_url }}" target="_blank"><i class="fab fa-telegram-plane"></i>Telegram</a></li>
+      {% endif %}
+      {% if whatsapp_url %}
+      <li><a href="{{ whatsapp_url }}" target="_blank"><i class="fab fa-whatsapp"></i>WhatsApp</a></li>
+      {% endif %}
+      {% endif %}
+    </ul>
+    {% endif %}
+
+    {% if settings.motd %}
+    <div id="motd-modal" class="modal">
+      <div class="modal-content">
+        <h4 id="motd-title"></h4>
+        <span id="motd-content"></span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div ng-controller="testCtrl">
+      <button ng-click="switch()" id="switch" class="hide">Switch</button>
+      <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+
+      <div ng-show="executed === 1">
+        <div class="payment-executed" align="center">
+          <div>
+          תודה רבה, התקבל התשלום על סך {{price}}₪
+          </div>
+          <div>
+            על מנת לממש רכישה זו, עליך להעתיק את קוד הרכישה ולשלוח לבוט בטלגרם לקבלת ההרשאה המתאימה
+          </div>
+          <div>
+            קוד המוצר הוא:
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label redeem-input">
+                <input dir="ltr" readonly class="mdl-textfield__input" type="text" id="redeem-input" ng-model="redeem">
+                <label class="mdl-textfield__label" for="free-donation">קוד מוצר</label>
+              </div>
+          </div>
+          <span class="material-icons copy-icon" ng-click="copy()">
+            content_paste
+          </span>
+          <button ng-copyable id="copy-btn" class="redeem-btn"></button>
+        </div>
+        <!--<input type="text" ng-model="redeem" id="redeem-input"/>-->
+
+
+
+        <div id="redeem-code"></div>
+      </div>
+
+      <div ng-show="executed === 0">
+        <div class="payment-details" id="payment-details" align="center">
+            <div class="ten-details perks" ng-if="price === 10">
+              עבור 10₪ תקבלו מפה עם:
+              <ul align="right">
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Pokestops.jpg">פוקיסטופים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Gyms.jpg">מכונים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/MonsIV.jpg">פוקימונים ואייבי</a></li>
+              </ul>
+            </div>
+            <div class="twenty-details perks" ng-if="price === 20">
+              עבור 20₪ תקבלו מפה עם:
+              <ul align="right">
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Pokestops.jpg">פוקיסטופים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Gyms.jpg">מכונים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/MonsIV.jpg">פוקימונים ואייבי</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/MapRaids.jpg">ריידים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/FireRocket.jpg">רוקט</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/RocketBoss.jpg">בוסים רוקט</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Giovanni.jpg">ג'ובאני</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Quest.jpg">משימות</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/QuestsPage.jpg">דף משימות</a></li>
+              </ul>
+            </div>
+            <div class="thirty-details perks" ng-if="price === 30">
+              עבור 30₪ תקבלו מפה עם:
+              <ul align="right">
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Pokestops.jpg">פוקיסטופים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Gyms.jpg">מכונים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/MonsIV.jpg">פוקימונים ואייבי</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/MapRaids.jpg">ריידים</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/FireRocket.jpg">רוקט</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/RocketBoss.jpg">בוסים רוקט</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Giovanni.jpg">ג'ובאני</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/Quest.jpg">משימות</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/QuestsPage.jpg">דף משימות</a></li>
+                <li><a style="color:#0000bf;" target="_blank" href="/static/images/donate/100.gif">ערוץ דיסקורד לאייבי 100%</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/0.gif">ערוץ דיסקורד לאייבי 0%</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/IV.gif">ערוץ דיסקורד לאייבי 91%-98%</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Great.gif">ערוץ דיסקורד לאייבי PVP Great 98%+</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Ultra.gif">ערוץ דיסקורד לאייבי PVP Ultra 98%+</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Blaze.gif">ערוץ דיסקורד לסיפי 420</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Luci.gif">ערוץ דיסקורד לסיפי 666</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Rare.gif">ערוץ דיסקורד לנדירים</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Ditto.gif">ערוץ דיסקורד לדיטו</a></li>
+                <li><a style="color:#0000bf;"  target="_blank" href="/static/images/donate/Raids.png">ערוצי דיסקורד לריידים לפי רמה</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="disclaimer" align="center">
+          הבהרות:
+          <ul align="right" dir="rtl">
+            <li>התשלום <b>לא נועד לעשיית רווח</b>, אלא לכיסוי הוצאות שיצאו מהכיס שלי להקמת מערכת הסריקות. ככל שנגייס יותר כסף, כך אוכל להשיג יותר מכשירים כדי להרחיב ולייעל את מערך הסורקים (<b>עלות מכשיר כ120₪</b>).</li>
+            <li>מי שיתרום סכום למכשיר, או גבוה יותר, המכשיר הסורק שייקנה עם הכסף, יוקצה לשכונת המשלם.</li>
+            <li>השימוש בשירותי המפה <b>לא יכול לגרום לבאן</b> למשתמשים.</li>
+            <li>הסורקים של המפה עלולים לקבל באן או בעקבות עדכונים של ניאנטיק יכול להיות שהשירות <b>לא יהיה זמין לפרקי זמן מסויימים</b>.</li>
+          </ul>
+        </div>
+        <div class="payments" align="center">
+          <div class="payment-selection">
+            <div class="payment-card" ng-class="{selected: isBasic}" id="ten" ng-click="selectPrice('ten')">10₪ - מפה בסיסית</div>
+            <div class="payment-card" ng-class="{selected: isAdvanced}" id="twenty" ng-click="selectPrice('twenty')">20₪ - מפה מלאה</div>
+            <div class="payment-card" ng-class="{selected: isPremium}" id="thirty" ng-click="selectPrice('thirty')">30₪ - מפה + התראות דיסקורד</div>
+            <div>
+              <hr />
+              <h3 dir="rtl">או תרום חופשי לבחירתך (מינימום 10₪)</h3>
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="free-donation" ng-model="freeDonation">
+                <label class="mdl-textfield__label" for="free-donation">תרומה בסכום אחר</label>
+                <span class="mdl-textfield__error">Input is not a number!</span>
+              </div>
+
+              <div ng-if="donationTooLow" class="donation-too-low">
+                הסכום המינימלי האפשרי הוא 10₪
+              </div>
+              <hr />
+            </div>
+          </div>
+
+
+        <div class="paypal" align="center">
+          <div class="acceptance">
+            בעצם התשלום למפה אני מצהיר שקראתי את ההצהרות והסכמתי
+          </div>
+          <div id="paypal-button"></div>
+        </div>
+      </div>
+
+	</div>
+
+    <script>
+      const version = "{{ version }}";
+      const serverSettings = {{ settings|tojson|safe }};
+    </script>
+
+
+    <script>
+    $(document).ready(function() {
+        if (localStorage.getItem('darkMode') === 'true') {
+            $('body').addClass('dark')
+            $('meta[name="theme-color"]').attr('content', '#212121')
+        }
+
+        $('.dropdown-trigger').dropdown({
+            constrainWidth: false,
+            coverTrigger: false
+        })
+    })
+    </script>
+
+  </body>
+</html>

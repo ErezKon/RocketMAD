@@ -26,6 +26,8 @@ from .transform import transform_from_wgs_to_gcj
 from .utils import (get_args, get_pokemon_name, get_sessions, i18n,
                     parse_geofence_file)
 
+import paypalrestsdk
+
 log = logging.getLogger(__name__)
 args = get_args()
 
@@ -34,6 +36,25 @@ accepted_auth_types = []
 valid_access_configs = []
 
 version = int(time.time())  # Used for cache busting.
+
+username = ''
+
+logged_as_member = False
+logged_as_basic = False
+logged_as_advanced = False
+logged_as_premium = False
+
+# SANDBOX
+#paypalrestsdk.configure({
+#    "mode": "sandbox",  # sandbox
+#    "client_id": "AeEKz-Zx8_OnNPsQaM5ocpgqX5N-ToMIT8ck7YvuOoVnvcPBcTjLMpjISnJw3WY0qdNrwFGIwV_5fGHZ",
+#    "client_secret": "ELl1v7O5hFbKRoPo_jGl9v2RwyNsgNPIfOu1D6SI1payVeLxelZmt4zCG1EkQlV6k6tnQCwyiRObM8H9"})
+
+# PROD
+paypalrestsdk.configure({
+    "mode": "live",  # live
+    "client_id": "AeMBBeU-KJJ2a9fbbhrBUjKG_tIXfctjsPF8LeOnJLhuKwG7L_nMRV6iNGdUlcSAJTaV0Hn9YU5nq56I",
+    "client_secret": "EMf-ZzNhoFETFM5_FJmy1lEDzFnWuobB1Mzg-UYyc-oUpsGQwN0WQvU3uHoEImFPLWU0gbouZzllbtzA"})
 
 
 class CustomJSONEncoder(JSONEncoder):
@@ -70,23 +91,71 @@ def convert_pokemon_list(pokemon):
     gc.enable()
     return pokemon
 
+def is_basic_role():
+    role =  session['auth_role']
+    #log.info(f'basic={role} , is basic = {role <= 0}')
+    return 'is_basic' in session
+
+
+def is_premium_role():
+    role =  session['auth_role']
+    #log.info(f'premium={role} , is premium = {role <= 2}')
+    return 'is_premium' in session
+
+def get_session_username():
+    if 'username' in session:
+        return session['username']
+    return None
+
 
 def is_logged_in():
-    return 'auth_type' in session
+    #global username
+    #log.info(f'in is_logged_in')
+    if 'username' in session:
+        username = session['username']
+        #log.info(f'username is in session: {username}')
+    logged = 'auth_type' in session
+    return logged
 
 
 def is_admin():
+    #log.info('in is admin')
     if not args.client_auth or not is_logged_in():
         return False
+    #log.info(f'{session}')
+    role = -1
+    if 'auth_role' in session:
+        role =  session['auth_role']
+        #log.info(f'found auth_role in session: {role}')
+
+    #log.info(f'premium: {session["is_premium"]}')
+    #log.info(f'advanced: {session["is_advanced"]}')
+    #log.info(f'basic: {session["is_basic"]}')
+    global logged_as_member
+    global logged_as_basic
+    global logged_as_advanced
+    global logged_as_premium
+
+    global username
+    logged_as_member = role >= 0
+    logged_as_basic = role >= 1
+    logged_as_advanced = role >= 2
+    logged_as_premium = role >= 3
 
     auth_type = session['auth_type']
     if auth_type == 'basic':
         return session['username'] in args.basic_auth_admins
     elif auth_type == 'discord':
+        username = session['username']
+        #log.info(f'in is_admin discord auth, getting username from session: {username}')
         return session['id'] in args.discord_admins
     elif auth_type == 'telegram':
         return session['id'] in args.telegram_admins
 
+def is_advanced_role():
+    role =  session['auth_role']
+    #log.info(f'advanced={role} , is advanced = {role <= 1}')
+    return 'is_advanced' in session
 
 def auth_required(f):
     @wraps(f)
@@ -186,11 +255,309 @@ def create_app():
             session['ip'] = ip_addr
             session['last_active'] = datetime.utcnow()
 
+    @app.route('/donation-success')
+    @auth_required
+    def donation_success_page(*_args, **kwargs):
+
+        user_args = get_args(kwargs['access_config'])
+
+        settings = {
+            'centerLat': user_args.center_lat,
+            'centerLng': user_args.center_lng,
+            'maxZoomLevel': user_args.max_zoom_level,
+            'showAllZoomLevel': user_args.show_all_zoom_level,
+            'clusterZoomLevel': user_args.cluster_zoom_level,
+            'clusterZoomLevelMobile': user_args.cluster_zoom_level_mobile,
+            'maxClusterRadius': user_args.max_cluster_radius,
+            'spiderfyClusters': user_args.spiderfy_clusters,
+            'removeMarkersOutsideViewport': (
+                not user_args.markers_outside_viewport),
+            'geocoder': not user_args.no_geocoder,
+            'isStartMarkerMovable': not user_args.lock_start_marker,
+            'generateImages': user_args.generate_images,
+            'statsSidebar': not user_args.no_stats_sidebar,
+            'twelveHourClock': user_args.twelve_hour_clock,
+            'mapUpdateInverval': user_args.map_update_interval,
+            'motd': user_args.motd,
+            'motdTitle': user_args.motd_title,
+            'motdText': user_args.motd_text,
+            'motdPages': user_args.motd_pages,
+            'showMotdAlways': user_args.show_motd_always,
+            'pokemons': not user_args.no_pokemon,
+            'upscaledPokemon': (
+                [int(i) for i in user_args.upscaled_pokemon.split(',')]
+                if user_args.upscaled_pokemon is not None else []),
+            'pokemonValues': (not user_args.no_pokemon and
+                              not user_args.no_pokemon_values),
+            'catchRates': user_args.catch_rates,
+            'rarity': (not user_args.no_pokemon and user_args.rarity and
+                       user_args.rarity_update_frequency),
+            'rarityFileName': user_args.rarity_filename,
+            'pokemonCries': (not user_args.no_pokemon and
+                             user_args.pokemon_cries),
+            'gyms': not user_args.no_gyms,
+            'gymSidebar': ((not user_args.no_gyms or
+                            not user_args.no_raids) and
+                           not user_args.no_gym_sidebar),
+            'gymFilters': (not user_args.no_gyms and
+                           not user_args.no_gym_filters),
+            'raids': not user_args.no_raids,
+            'raidFilters': (not user_args.no_raids and
+                            not user_args.no_raid_filters),
+            'pokestops': not user_args.no_pokestops,
+            'quests': not user_args.no_pokestops and not user_args.no_quests,
+            'invasions': (not user_args.no_pokestops and
+                          not user_args.no_invasions),
+            'lures': not user_args.no_pokestops and not user_args.no_lures,
+            'weather': not user_args.no_weather,
+            'spawnpoints': not user_args.no_spawnpoints,
+            'scannedLocs': not user_args.no_scanned_locs,
+            's2Cells': not user_args.no_s2_cells,
+            'ranges': not user_args.no_ranges,
+            'nestParks': user_args.nest_parks,
+            'nestParksFileName': user_args.nest_parks_filename,
+            'exParks': user_args.ex_parks,
+            'exParksFileName': user_args.ex_parks_filename
+        }
+
+        return render_template('donation-success.html',
+            version=version,
+            lang=user_args.locale,
+            map_title=user_args.map_title,
+            custom_favicon=user_args.custom_favicon,
+            header_image=not user_args.no_header_image,
+            header_image_name=user_args.header_image,
+            client_auth=user_args.client_auth,
+            logged_in=is_logged_in(),
+            admin=is_admin(),
+            madmin_url=user_args.madmin_url,
+            donate_url=user_args.donate_url,
+            patreon_url=user_args.patreon_url,
+            discord_url=user_args.discord_url,
+            messenger_url=user_args.messenger_url,
+            telegram_url=user_args.telegram_url,
+            whatsapp_url=user_args.whatsapp_url,
+            pokemon_history_page=(settings['pokemons'] and
+                                  not user_args.no_pokemon_history_page),
+            quest_page=settings['quests'] and not user_args.no_quest_page,
+            analytics_id=user_args.analytics_id,
+            settings=settings,
+            i18n=i18n)
+
+    @app.route('/cancel-donation')
+    @auth_required
+    def cancel_donation_page(*_args, **kwargs):
+
+        user_args = get_args(kwargs['access_config'])
+
+        settings = {
+            'centerLat': user_args.center_lat,
+            'centerLng': user_args.center_lng,
+            'maxZoomLevel': user_args.max_zoom_level,
+            'showAllZoomLevel': user_args.show_all_zoom_level,
+            'clusterZoomLevel': user_args.cluster_zoom_level,
+            'clusterZoomLevelMobile': user_args.cluster_zoom_level_mobile,
+            'maxClusterRadius': user_args.max_cluster_radius,
+            'spiderfyClusters': user_args.spiderfy_clusters,
+            'removeMarkersOutsideViewport': (
+                not user_args.markers_outside_viewport),
+            'geocoder': not user_args.no_geocoder,
+            'isStartMarkerMovable': not user_args.lock_start_marker,
+            'generateImages': user_args.generate_images,
+            'statsSidebar': not user_args.no_stats_sidebar,
+            'twelveHourClock': user_args.twelve_hour_clock,
+            'mapUpdateInverval': user_args.map_update_interval,
+            'motd': user_args.motd,
+            'motdTitle': user_args.motd_title,
+            'motdText': user_args.motd_text,
+            'motdPages': user_args.motd_pages,
+            'showMotdAlways': user_args.show_motd_always,
+            'pokemons': not user_args.no_pokemon,
+            'upscaledPokemon': (
+                [int(i) for i in user_args.upscaled_pokemon.split(',')]
+                if user_args.upscaled_pokemon is not None else []),
+            'pokemonValues': (not user_args.no_pokemon and
+                              not user_args.no_pokemon_values),
+            'catchRates': user_args.catch_rates,
+            'rarity': (not user_args.no_pokemon and user_args.rarity and
+                       user_args.rarity_update_frequency),
+            'rarityFileName': user_args.rarity_filename,
+            'pokemonCries': (not user_args.no_pokemon and
+                             user_args.pokemon_cries),
+            'gyms': not user_args.no_gyms,
+            'gymSidebar': ((not user_args.no_gyms or
+                            not user_args.no_raids) and
+                           not user_args.no_gym_sidebar),
+            'gymFilters': (not user_args.no_gyms and
+                           not user_args.no_gym_filters),
+            'raids': not user_args.no_raids,
+            'raidFilters': (not user_args.no_raids and
+                            not user_args.no_raid_filters),
+            'pokestops': not user_args.no_pokestops,
+            'quests': not user_args.no_pokestops and not user_args.no_quests,
+            'invasions': (not user_args.no_pokestops and
+                          not user_args.no_invasions),
+            'lures': not user_args.no_pokestops and not user_args.no_lures,
+            'weather': not user_args.no_weather,
+            'spawnpoints': not user_args.no_spawnpoints,
+            'scannedLocs': not user_args.no_scanned_locs,
+            's2Cells': not user_args.no_s2_cells,
+            'ranges': not user_args.no_ranges,
+            'nestParks': user_args.nest_parks,
+            'nestParksFileName': user_args.nest_parks_filename,
+            'exParks': user_args.ex_parks,
+            'exParksFileName': user_args.ex_parks_filename
+        }
+
+        return render_template('cancel-donation.html',
+            version=version,
+            lang=user_args.locale,
+            map_title=user_args.map_title,
+            custom_favicon=user_args.custom_favicon,
+            header_image=not user_args.no_header_image,
+            header_image_name=user_args.header_image,
+            client_auth=user_args.client_auth,
+            logged_in=is_logged_in(),
+            admin=is_admin(),
+            madmin_url=user_args.madmin_url,
+            donate_url=user_args.donate_url,
+            patreon_url=user_args.patreon_url,
+            discord_url=user_args.discord_url,
+            messenger_url=user_args.messenger_url,
+            telegram_url=user_args.telegram_url,
+            whatsapp_url=user_args.whatsapp_url,
+            pokemon_history_page=(settings['pokemons'] and
+                                  not user_args.no_pokemon_history_page),
+            quest_page=settings['quests'] and not user_args.no_quest_page,
+            analytics_id=user_args.analytics_id,
+            settings=settings,
+            i18n=i18n)
+
+    @app.route('/donate')
+    @auth_required
+    def donate_page(*_args, **kwargs):
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+
+        user_args = get_args(kwargs['access_config'])
+
+        username = get_session_username()
+
+        is_admin()
+
+        settings = {
+            'centerLat': user_args.center_lat,
+            'centerLng': user_args.center_lng,
+            'maxZoomLevel': user_args.max_zoom_level,
+            'showAllZoomLevel': user_args.show_all_zoom_level,
+            'clusterZoomLevel': user_args.cluster_zoom_level,
+            'clusterZoomLevelMobile': user_args.cluster_zoom_level_mobile,
+            'maxClusterRadius': user_args.max_cluster_radius,
+            'spiderfyClusters': user_args.spiderfy_clusters,
+            'removeMarkersOutsideViewport': (
+                not user_args.markers_outside_viewport),
+            'geocoder': not user_args.no_geocoder,
+            'isStartMarkerMovable': not user_args.lock_start_marker,
+            'generateImages': user_args.generate_images,
+            'statsSidebar': not user_args.no_stats_sidebar,
+            'twelveHourClock': user_args.twelve_hour_clock,
+            'mapUpdateInverval': user_args.map_update_interval,
+            'motd': user_args.motd,
+            'motdTitle': user_args.motd_title,
+            'motdText': user_args.motd_text,
+            'motdPages': user_args.motd_pages,
+            'showMotdAlways': user_args.show_motd_always,
+            'pokemons': not user_args.no_pokemon,
+            'upscaledPokemon': (
+                [int(i) for i in user_args.upscaled_pokemon.split(',')]
+                if user_args.upscaled_pokemon is not None else []),
+            'pokemonValues': (not user_args.no_pokemon and
+                              not user_args.no_pokemon_values),
+            'catchRates': user_args.catch_rates,
+            'rarity': (not user_args.no_pokemon and user_args.rarity and
+                       user_args.rarity_update_frequency),
+            'rarityFileName': user_args.rarity_filename,
+            'pokemonCries': (not user_args.no_pokemon and
+                             user_args.pokemon_cries),
+            'gyms': not user_args.no_gyms,
+            'gymSidebar': ((not user_args.no_gyms or
+                            not user_args.no_raids) and
+                           not user_args.no_gym_sidebar),
+            'gymFilters': (not user_args.no_gyms and
+                           not user_args.no_gym_filters),
+            'raids': not user_args.no_raids,
+            'raidFilters': (not user_args.no_raids and
+                            not user_args.no_raid_filters),
+            'pokestops': not user_args.no_pokestops,
+            'quests': not user_args.no_pokestops and not user_args.no_quests,
+            'invasions': (not user_args.no_pokestops and
+                          not user_args.no_invasions),
+            'lures': not user_args.no_pokestops and not user_args.no_lures,
+            'weather': not user_args.no_weather,
+            'spawnpoints': not user_args.no_spawnpoints,
+            'scannedLocs': not user_args.no_scanned_locs,
+            's2Cells': not user_args.no_s2_cells,
+            'ranges': not user_args.no_ranges,
+            'nestParks': user_args.nest_parks,
+            'nestParksFileName': user_args.nest_parks_filename,
+            'exParks': user_args.ex_parks,
+            'exParksFileName': user_args.ex_parks_filename,
+            'username': username
+        }
+
+        return render_template('donate.html',
+            version=version,
+            lang=user_args.locale,
+            map_title=user_args.map_title,
+            custom_favicon=user_args.custom_favicon,
+            header_image=not user_args.no_header_image,
+            header_image_name=user_args.header_image,
+            client_auth=user_args.client_auth,
+            logged_in=is_logged_in(),
+            admin=is_admin(),
+            madmin_url=user_args.madmin_url,
+            donate_url=user_args.donate_url,
+            patreon_url=user_args.patreon_url,
+            discord_url=user_args.discord_url,
+            messenger_url=user_args.messenger_url,
+            telegram_url=user_args.telegram_url,
+            whatsapp_url=user_args.whatsapp_url,
+            pokemon_history_page=(settings['pokemons'] and
+                                  not user_args.no_pokemon_history_page),
+            quest_page=settings['quests'] and not user_args.no_quest_page,
+            analytics_id=user_args.analytics_id,
+            settings=settings,
+            i18n=i18n)
+
     @app.route('/')
     @auth_required
     def map_page(*_args, **kwargs):
-        if not kwargs['has_permission']:
-            return redirect(kwargs['redirect_uri'])
+        is_logged_in()
+        #if not kwargs['has_permission']:
+        #    red = kwargs['redirect_uri']
+        #    log.info(f'does not have permissions to the map redirecting to {red}')
+        #    return redirect(kwargs['redirect_uri'])
+
+        is_admin()
+
+        global logged_as_member
+        global logged_as_basic
+        global logged_as_advanced
+        global logged_as_premium
+
+        #global username
+
+        #log.info(f'is member: {logged_as_member}')
+        #log.info(f'is basic: {logged_as_basic}')
+        #log.info(f'is advanced: {logged_as_advanced}')
+        #log.info(f'is premium: {logged_as_premium}')
+
+        user_args = get_args(kwargs['access_config'])
+        authorized = kwargs['has_permission'] == True and is_logged_in()
+
+		#log.info(f'map authorized = {authorized}')
+        username = get_session_username()
+        #log.info(f'map session username is: {username}')
 
         user_args = get_args(kwargs['access_config'])
 
@@ -218,7 +585,7 @@ def create_app():
             'motdText': user_args.motd_text,
             'motdPages': user_args.motd_pages,
             'showMotdAlways': user_args.show_motd_always,
-            'pokemons': not user_args.no_pokemon,
+            'pokemons': logged_as_basic, #not user_args.no_pokemon and authorized,
             'upscaledPokemon': (
                 [int(i) for i in user_args.upscaled_pokemon.split(',')]
                 if user_args.upscaled_pokemon is not None else []),
@@ -230,18 +597,18 @@ def create_app():
             'rarityFileName': user_args.rarity_filename,
             'pokemonCries': (not user_args.no_pokemon
                              and user_args.pokemon_cries),
-            'gyms': not user_args.no_gyms,
+            'gyms': logged_as_basic, #not user_args.no_gyms,
             'gymSidebar': ((not user_args.no_gyms or not user_args.no_raids)
                            and not user_args.no_gym_sidebar),
             'gymFilters': (not user_args.no_gyms
                            and not user_args.no_gym_filters),
-            'raids': not user_args.no_raids,
+            'raids': logged_as_advanced, #not user_args.no_raids and authorized,
             'raidFilters': (not user_args.no_raids
                             and not user_args.no_raid_filters),
-            'pokestops': not user_args.no_pokestops,
-            'quests': not user_args.no_pokestops and not user_args.no_quests,
-            'invasions': (not user_args.no_pokestops
-                          and not user_args.no_invasions),
+            'pokestops': logged_as_basic, #not user_args.no_pokestops,
+            'quests': logged_as_advanced, #not user_args.no_pokestops and not user_args.no_quests and authorized,
+            'invasions': logged_as_advanced, #(not user_args.no_pokestops and
+                           #not user_args.no_invasions) and authorized,
             'lures': not user_args.no_pokestops and not user_args.no_lures,
             'weather': not user_args.no_weather,
             'spawnpoints': not user_args.no_spawnpoints,
@@ -254,7 +621,8 @@ def create_app():
             'exParks': user_args.ex_parks,
             'exParksFileName': user_args.ex_parks_filename,
             'highlightPokemon': user_args.highlight_pokemon.lower(),
-            'perfectCircle': user_args.perfect_circle
+            'perfectCircle': user_args.perfect_circle,
+            'username': username
         }
 
         return render_template(
@@ -289,7 +657,13 @@ def create_app():
         if not kwargs['has_permission']:
             return redirect(kwargs['redirect_uri'])
 
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+
         user_args = get_args(kwargs['access_config'])
+
+        username = get_session_username()
+
 
         if user_args.no_pokemon or user_args.no_pokemon_history_page:
             if args.client_auth:
@@ -308,7 +682,8 @@ def create_app():
             'motdTitle': user_args.motd_title,
             'motdText': user_args.motd_text,
             'motdPages': user_args.motd_pages,
-            'showMotdAlways': user_args.show_motd_always
+            'showMotdAlways': user_args.show_motd_always,
+            'username': username
         }
 
         return render_template(
@@ -343,6 +718,11 @@ def create_app():
         if not kwargs['has_permission']:
             return redirect(kwargs['redirect_uri'])
 
+        username = get_session_username()
+
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+
         user_args = get_args(kwargs['access_config'])
 
         if (user_args.no_pokestops or user_args.no_quests
@@ -361,7 +741,8 @@ def create_app():
             'motdTitle': user_args.motd_title,
             'motdText': user_args.motd_text,
             'motdPages': user_args.motd_pages,
-            'showMotdAlways': user_args.show_motd_always
+            'showMotdAlways': user_args.show_motd_always,
+            'username': username
         }
 
         return render_template(
@@ -397,6 +778,8 @@ def create_app():
 
         user_args = get_args(kwargs['access_config'])
 
+        username = get_session_username()
+
         # todo: Check if client is Android/iOS/Desktop for geolink, currently
         # only supports Android.
         pokemon_list = []
@@ -406,7 +789,8 @@ def create_app():
             'motdTitle': user_args.motd_title,
             'motdText': user_args.motd_text,
             'motdPages': user_args.motd_pages,
-            'showMotdAlways': user_args.show_motd_always
+            'showMotdAlways': user_args.show_motd_always,
+            'username': username
         }
 
         # Allow client to specify location.
@@ -457,6 +841,7 @@ def create_app():
 
     @app.route('/login')
     def login_page():
+        #log.info('in login')
         if not args.client_auth:
             abort(404)
 
@@ -500,6 +885,7 @@ def create_app():
 
     @app.route('/login/<auth_type>')
     def login(auth_type):
+        log.info('in login/<auth_type>')
         if not args.client_auth:
             abort(404)
 
@@ -511,6 +897,8 @@ def create_app():
 
         authenticator = auth_factory.get_authenticator(auth_type)
         auth_uri = authenticator.get_authorization_url()
+
+		#log.info(f'login/discord auth_uri: {auth_uri}')
 
         return redirect(auth_uri)
 
@@ -595,7 +983,10 @@ def create_app():
         if not args.client_auth:
             abort(404)
 
+        global username
+
         if is_logged_in():
+            #log.info(f'username: {username}')
             return redirect(url_for('map_page'))
 
         if auth_type not in accepted_auth_types:
@@ -630,6 +1021,19 @@ def create_app():
             if session['auth_type'] in accepted_auth_types:
                 a = auth_factory.get_authenticator(session['auth_type'])
                 a.end_session()
+                #global username
+
+                global logged_as_basic
+                global logged_as_advanced
+                global logged_as_premium
+
+                #username = ''
+                logged_as_basic = False
+                logged_as_advanced = False
+                logged_as_premium = False
+
+                if 'username' in session:
+                    del session['username']
             else:
                 session.clear()
 
@@ -1075,5 +1479,133 @@ def create_app():
     @app.route('/serviceWorker.min.js')
     def render_service_worker_js():
         return send_from_directory('../static/dist/js', 'serviceWorker.min.js')
+
+    @app.route('/create-payment', methods=['POST'])
+    def create_payments():
+
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+
+        price = float(request.form['price'])
+        log.info(f"entered create-payment, price is: {price}")
+
+        if price < 10 :
+            return
+
+        product = ''
+        sku = 1
+        description = ''
+
+        if price == 10 :
+            product = 'Basic PogoMapB7'
+            sku = 1
+            description = "Basic usage for the scans map in Be'er Sheva, PogoMapB7"
+        elif price == 20 :
+            product = 'Advanced PogoMapB7'
+            sku = 2
+            description = "Advanced usage for the scans map in Be'er Sheva, PogoMapB7"
+        elif price == 30 :
+            product = 'Premium PogoMapB7'
+            sku = 3
+            description = "Premium usage for the scans map in Be'er Sheva, PogoMapB7"
+        else:
+            product = 'Free Donation PogoMapB7'
+            sku = 4
+            description = "Free Donation for the scans map in Be'er Sheva, PogoMapB7"
+
+
+        payment = paypalrestsdk.Payment({
+            "intent": "sale",
+            "payer": {
+                "payment_method": "paypal"
+            },
+            "redirect_urls": {
+                "return_url": "https://pogob7.net/payment/execute",
+                "cancel_url": "https://pogob7.net/cancel-donation"},
+            "transactions": [{
+                "item_list": {
+                    "items": [{
+                        "name": product,
+                        "sku": sku,
+                        "price": f"{price}",
+                        "currency": "ILS",
+                        "quantity": 1
+                    }]
+                },
+                "amount": {
+                    "total": f"{price}",
+                    "currency": "ILS"
+                },
+                "description": description
+            }]
+        })
+
+        if payment.create():
+            log.info("Payment created successfully")
+        else:
+            log.info(payment.error)
+
+        return jsonify({'paymentID': payment.id})
+
+    @app.route('/execute-payment', methods=['POST'])
+    def execute_payments():
+
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+
+        log.info(f"entered execute_payments-payment, paymentID is: {request.form['paymentID']}")
+        success = False
+        payment = paypalrestsdk.Payment.find(request.form['paymentID'])
+        if payment.execute({"payer_id": request.form['payerID']}):
+            log.info(f"Payment execute successfully for {session['username']}")
+            filename = f"/payments/{session['username']}.json"
+            data_file = load_auth_file(filename)
+            updated_data = append_payment_to_data(data_file, payment)
+            append_data_file(filename, updated_data)
+            success = True
+        else:
+            log.info(payment.error)
+        return jsonify({'success': success, 'paymentID': payment.id})
+
+    def load_auth_file(file):
+        # log.info(f"entered load_auth_file")
+        if not path.exists(file):
+            log.info(f"file does not exists, creating new object")
+            return {}
+        # log.info(f"opening file")
+        f = open(file, "r")
+        # log.info(f"reading data")
+        json_data = f.read()
+        # log.info(f"converting to json")
+        data = json.loads(json_data)
+        return data
+
+    def append_payment_to_data(data, payment):
+        amount = float(payment.transactions[0].amount.total)
+
+        role = '755467984721674363' # BasicMapRole
+
+        if amount == 20:
+            role = '734762107328790588' # AdvancedMapRole
+        elif amount >= 30:
+            role ='755468514180988952'
+
+        # log.info(f"{amount}")
+        expireIn = datetime.today()+ relativedelta(months=1)
+        # log.info(f"{expireIn}")
+        data[payment.id] = {
+            'amount': amount,
+            'expireIn': expireIn.strftime("%Y-%m-%d %H:%M:%S"),
+            'tokenUsed': False,
+            'role': role
+        }
+        # log.info(f"{data[payment.id]['tokenUsed']}")
+        return data
+
+    def append_data_file(file, data):
+        f = open(file, "w+")
+        json_data = json.dumps(data)
+        f.write(json_data)
+
 
     return app

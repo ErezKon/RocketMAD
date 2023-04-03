@@ -49,7 +49,7 @@
               <li><a href="#" data-target="settings-sidenav" class="sidenav-trigger"><i class="material-icons">menu</i></a></li>
               <li>
                 <a href="{{ url_for('map_page') }}" class="brand-logo">
-                  {{ map_title }}{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
+                  <span class="map-title">{{ map_title }}</span>{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
                 </a>
               </li>
             </ul>
@@ -73,9 +73,7 @@
               {% if patreon_url %}
               <li><a href="{{ patreon_url }}" class="hide-on-small-only" title="Patreon" target="_blank"><i class="fab fa-patreon material-icons"></i></a></li>
               {% endif %}
-              {% if donate_url %}
-              <li><a href="{{ donate_url }}" class="hide-on-small-only" title="{{ i18n('Donate') }}" target="_blank"><i class="material-icons">attach_money</i></a></li>
-              {% endif %}
+              <li><a href="{{ url_for('donate_page') }}" class="hide-on-small-only" title="Donate"><i class="material-icons">attach_money</i></a></li>
               {% if madmin_url %}
               <li><a href="{{ madmin_url }}" class="hide-on-small-only" title="MADmin" target="_blank"><i class="material-icons">phone_android</i></a></li>
               {% endif %}
@@ -111,9 +109,7 @@
       {% endif %}
       {% if donate_url or patreon_url %}
       <li class="divider" tabindex="-1"></li>
-      {% if donate_url %}
-      <li><a href="{{ donate_url }}" target="_blank"><i class="material-icons">attach_money</i>{{ i18n('Donate') }}</a></li>
-      {% endif %}
+      <li><a href="{{ url_for('donate_page') }}" class="hide-on-small-only" title="Donate"><i class="material-icons">attach_money</i></a></li>
       {% if patreon_url %}
       <li><a href="{{ patreon_url }}" target="_blank"><i class="fab fa-patreon"></i>Patreon</a></li>
       {% endif %}

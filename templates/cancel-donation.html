@@ -19,7 +19,7 @@
       gtag('config', '{{ analytics_id }}')
     </script>
     {% endif %}
-    <title>{{ map_title }} - {{ i18n('Quests') }}</title>
+    <title>{{ map_title }} - Test</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{{ appicons_dir }}apple-touch-icon.png">
@@ -34,25 +34,23 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/materialize-css@1.0.0/dist/css/materialize.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.20/r-2.2.3/datatables.min.css"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/app.min.css') }}">
   </head>
 
-  <body>
+  <body ng-app="cancel-donation-app">
     <header>
       <div class="navbar-fixed">
         <nav>
           <div class="nav-wrapper">
             <ul>
-              <li><a href="#" data-target="settings-sidenav" class="sidenav-trigger"><i class="material-icons">menu</i></a></li>
               <li>
                 <a href="{{ url_for('map_page') }}" class="brand-logo">
-                  <span class="map-title">{{ map_title }}</span>{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
+                  {{ map_title }}{% if header_image %}<img src="{{ url_for('static', filename='images/header/') }}{{ header_image_name }}" class="brand-logo-image" height="32">{% endif %}
                 </a>
               </li>
             </ul>
             <ul class="right">
-              {% set use_dropdown = discord_url or messenger_url or telegram_url or whatsapp_url or patreon_url or donate_url or madmin_url or admin or pokemon_history_page or client_auth %}
+              {% set use_dropdown = discord_url or messenger_url or telegram_url or whatsapp_url or patreon_url or donate_url or madmin_url or pokemon_history_page or quest_page %}
               {% if use_dropdown %}
               <li><a class="dropdown-trigger hide-on-med-and-up" href="#" data-target="navbar-dropdown"><i class="material-icons">more_vert</i></a></li>
               {% endif %}
@@ -71,22 +69,18 @@
               {% if patreon_url %}
               <li><a href="{{ patreon_url }}" class="hide-on-small-only" title="Patreon" target="_blank"><i class="fab fa-patreon material-icons"></i></a></li>
               {% endif %}
-              <li><a href="{{ url_for('donate_page') }}" class="hide-on-small-only" title="Donate"><i class="material-icons">attach_money</i></a></li>
-			  {% if madmin_url %}
+              {% if donate_url %}
+              <li><a href="{{ donate_url }}" class="hide-on-small-only" title="Donate" target="_blank"><i class="material-icons">attach_money</i></a></li>
+              {% endif %}
+			  <li>Test</li>
+              {% if madmin_url %}
               <li><a href="{{ madmin_url }}" class="hide-on-small-only" title="MADmin" target="_blank"><i class="material-icons">phone_android</i></a></li>
               {% endif %}
-              {% if admin %}
-              <li><a href="{{ url_for('admin_page') }}" class="hide-on-small-only" title="Admin"><i class="material-icons">dashboard</i></a></li>
-              {% endif %}
               {% if pokemon_history_page %}
-              <li><a href="{{ url_for('pokemon_history_page') }}" class="hide-on-small-only" title="{{ i18n('Pokémon history') }}"><i class="material-icons">pets</i></a></li>
+              <li><a href="{{ url_for('pokemon_history_page') }}" class="hide-on-small-only" title="Pokémon history"><i class="material-icons">pets</i></a></li>
               {% endif %}
-              {% if client_auth %}
-              {% if logged_in %}
-              <li><a href="{{ url_for('logout') }}" class="hide-on-small-only" title="{{ i18n('Log out') }}"><i class="material-icons">exit_to_app</i></a></li>
-              {% else %}
-              <li><a href="{{ url_for('login_page') }}" class="hide-on-small-only" title="{{ i18n('Log in') }}"><i class="material-icons">account_box</i></a></li>
-              {% endif %}
+              {% if quest_page %}
+              <li><a href="{{ url_for('quest_page') }}" class="hide-on-small-only" title="Quests"><i class="material-icons">explore</i></a></li>
               {% endif %}
             </ul>
           </div>
@@ -97,10 +91,10 @@
     {% if use_dropdown %}
     <ul id="navbar-dropdown" class="dropdown-content">
       {% if pokemon_history_page %}
-      <li><a href="{{ url_for('pokemon_history_page') }}"><i class="material-icons">pets</i>{{ i18n('Pokémon history') }}</a></li>
+      <li><a href="{{ url_for('pokemon_history_page') }}"><i class="material-icons">pets</i>Pokémon history</a></li>
       {% endif %}
-      {% if admin %}
-      <li><a href="{{ url_for('admin_page') }}"><i class="material-icons">dashboard</i>Admin</a></li>
+      {% if quest_page %}
+      <li><a href="{{ url_for('quest_page') }}"><i class="material-icons">explore</i>Quests</a></li>
       {% endif %}
       {% if madmin_url %}
       <li><a href="{{ madmin_url }}" target="_blank"><i class="material-icons">phone_android</i>MADmin</a></li>
@@ -108,7 +102,7 @@
       {% if donate_url or patreon_url %}
       <li class="divider" tabindex="-1"></li>
       {% if donate_url %}
-      <li><a href="{{ donate_url }}" target="_blank"><i class="material-icons">attach_money</i>{{ i18n('Donate') }}</a></li>
+      <li><a href="{{ donate_url }}" target="_blank"><i class="material-icons">attach_money</i>Donate</a></li>
       {% endif %}
       {% if patreon_url %}
       <li><a href="{{ patreon_url }}" target="_blank"><i class="fab fa-patreon"></i>Patreon</a></li>
@@ -119,6 +113,7 @@
       {% if discord_url %}
       <li><a href="{{ discord_url }}" target="_blank"><i class="fab fa-discord"></i>Discord</a></li>
       {% endif %}
+	  <li>Test</li>
       {% if messenger_url %}
       <li><a href="{{ messenger_url }}" target="_blank"><i class="fab fa-facebook-messenger"></i>Messenger</a></li>
       {% endif %}
@@ -127,14 +122,6 @@
       {% endif %}
       {% if whatsapp_url %}
       <li><a href="{{ whatsapp_url }}" target="_blank"><i class="fab fa-whatsapp"></i>WhatsApp</a></li>
-      {% endif %}
-      {% endif %}
-      {% if client_auth %}
-      <li class="divider" tabindex="-1"></li>
-      {% if logged_in %}
-      <li><a href="{{ url_for('logout') }}"><i class="material-icons">exit_to_app</i>{{ i18n('Log out') }}</a></li>
-      {% else %}
-      <li><a href="{{ url_for('login_page') }}"><i class="material-icons">account_box</i>{{ i18n('Log in') }}</a></li>
       {% endif %}
       {% endif %}
     </ul>
@@ -149,58 +136,10 @@
     </div>
     {% endif %}
 
-    <div id="image-modal" class="modal">
-      <div class="modal-content">
-        <h5></h5>
-        <img class="responsive-img">
-      </div>
-    </div>
-
-    <ul id="settings-sidenav" class="sidenav">
-      <li>
-        <div class="settings-container">
-          <div class="form-control">
-            <div class="switch">
-              <label>
-                <input type="checkbox" id="dark-mode-switch">
-                <span class="lever"></span>
-                {{ i18n('Dark mode') }}
-              </label>
-            </div>
-          </div>
-        </div>
-      </li>
-    </ul>
-
-    <div id="quest-container">
-      <h5 id="quest-title" style="display:none;">{{ i18n('Quests') }}</h5>
-      <div id="table-container" style="display:none;">
-        <table id="quest-table" class="order-column row-border top-border hover" width="100%">
-          <thead>
-            <tr>
-              <th>{{ i18n('PokéStop') }}</th>
-              <th>{{ i18n('Task') }}</th>
-              <th>{{ i18n('Reward') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-      </div>
-      <div class="preloader-wrapper big active centered">
-        <div class="spinner-layer">
-          <div class="circle-clipper left">
-            <div class="circle"></div>
-          </div>
-          <div class="gap-patch">
-              <div class="circle"></div>
-          </div>
-          <div class="circle-clipper right">
-            <div class="circle"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div ng-controller="cancelDonationCtrl">
+      <h3>Donation Canceled</h3>
+      <h4>Please note that you must donate at least 10ILS to use the map</h4>
+	</div>
 
     <script>
       const version = "{{ version }}";
@@ -209,10 +148,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/materialize-css@1.0.0/dist/js/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
-    <script src="https://cdn.datatables.net/v/dt/dt-1.10.20/r-2.2.3/datatables.min.js"></script>
-    <script src="https://cdn.datatables.net/plug-ins/1.10.20/sorting/natural.js"></script>
 
-    <script src="{{ url_for('static', filename='dist/js/quest.min.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+
+    <script>
+    $(document).ready(function() {
+        if (localStorage.getItem('darkMode') === 'true') {
+            $('body').addClass('dark')
+            $('meta[name="theme-color"]').attr('content', '#212121')
+        }
+
+        $('.dropdown-trigger').dropdown({
+            constrainWidth: false,
+            coverTrigger: false
+        })
+    })
+    </script>
+
+  <script>
+    var App = angular.module('cancel-donation-app', []);
+    App.controller('cancelDonationCtrl', function ($scope, $http, $window, $rootScope) {
+
+    });
+  </script>
   </body>
 </html>

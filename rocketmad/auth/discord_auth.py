@@ -7,6 +7,7 @@ import time
 import uuid
 
 from base64 import b64encode
+from datetime import datetime
 from flask import request, session, url_for
 
 from .oauth2 import OAuth2Base
@@ -15,10 +16,17 @@ from ..utils import get_args
 log = logging.getLogger(__name__)
 args = get_args()
 
+#usrName = ''
 
 class DiscordAuth(OAuth2Base):
 
     def __init__(self):
+        self.guild_id = '734716032270336110'
+        self.premium_role = '755468514180988952'
+        self.advanced_role = '734762107328790588'
+        self.basic_role = '755467984721674363'
+        self.member_role = '734761924981555230'
+
         self.redirect_uri = args.server_uri + '/auth/discord'
         self.client_id = args.discord_client_id
         self.client_secret = args.discord_client_secret
@@ -33,6 +41,8 @@ class DiscordAuth(OAuth2Base):
         self.required_roles = []
         self.blacklisted_roles = []
         self.access_configs = []
+
+        #self.username = ''
 
         roles = args.discord_required_roles + args.discord_blacklisted_roles
         for role in roles:
@@ -82,12 +92,14 @@ class DiscordAuth(OAuth2Base):
             self.access_configs.append((guild_id, role_id, config_name))
 
     def get_authorization_url(self):
+        #log.info(f'redirect url is: {self.redirect_uri}')
         session['state'] = str(uuid.uuid4())
         auth_url = ('{}?response_type=code&client_id={}&scope={}&state={}&'
                     'redirect_uri={}&prompt=consent'.format(
                         self.authorize_url, self.client_id,
                         self.scope.replace(' ', '%20'), session['state'],
                         self.redirect_uri))
+        #log.info(f'auth url is: {auth_url}')
         return auth_url
 
     def authorize(self):
@@ -116,6 +128,8 @@ class DiscordAuth(OAuth2Base):
             return False
 
         code = request.args.get('code')
+        #log.info(f' code: {code}')
+
         if code is None:
             log.warning('Invalid Discord authorization attempt: '
                         'access code missing.')
@@ -133,8 +147,12 @@ class DiscordAuth(OAuth2Base):
             log.warning('Exception while adding Discord user: %s', e)
             return False
         session['auth_type'] = 'discord'
-        log.debug('Discord user %s succesfully logged in.',
+        log.info('Discord user %s succesfully logged in.',
                   session['username'])
+
+        #self.username = session['username']
+        #global usrName
+        #usrName = session['username']
 
         return True
 
@@ -197,7 +215,69 @@ class DiscordAuth(OAuth2Base):
 
         return has_permission, redirect_uri, access_config_name
 
+    def _get_user_auth(self, roles):
+        #log.info('in the user auth')
+
+        is_premium = False
+        is_advanced = False
+        is_basic = False
+        is_member = False
+
+        for role in roles:
+            #log.info(f'comparing {role} to {self.premium_role}')
+            if role == self.premium_role:
+                #log.info('found premium')
+                is_premium = True
+            #log.info(f'comparing {role} to {self.advanced_role}')
+            if role == self.advanced_role:
+                #log.info('found advanced')
+                is_advanced = True
+            #log.info(f'comparing {role} to {self.basic_role}')
+            if role == self.basic_role:
+                #log.info('found basic')
+                is_basic = True
+            if role == self.member_role:
+                is_member = True
+
+        if is_premium:
+            #log.info('is premium')
+            session['is_premium'] = True
+            session['is_advanced'] = True
+            session['is_basic'] = True
+            session['is_member'] = True
+            session['auth_role'] = 3
+            return
+        elif is_advanced:
+            #log.info('is advanced')
+            session['is_premium'] = False
+            session['is_advanced'] = True
+            session['is_basic'] = True
+            session['is_member'] = True
+            session['auth_role'] = 2
+        elif is_basic:
+            #log.info('is basic')
+            session['is_premium'] = False
+            session['is_advanced'] = False
+            session['is_basic'] = True
+            session['is_member'] = True
+            session['auth_role'] = 1
+        elif is_member:
+            #log.info('is member')
+            session['is_premium'] = False
+            session['is_advanced'] = False
+            session['is_basic'] = False
+            session['is_member'] = True
+            session['auth_role'] = 0
+        else:
+            #log.info('is none')
+            session['is_premium'] = False
+            session['is_advanced'] = False
+            session['is_basic'] = False
+            session['is_member'] = False
+
     def _update_access_data(self):
+        authorizedRole = False
+        session['authorizedRole'] = False
         if session['id'] in args.discord_blacklisted_users:
             session['has_permission'] = False
             session['access_config_name'] = None
@@ -233,6 +313,10 @@ class DiscordAuth(OAuth2Base):
                 session['has_permission'] = False
                 session['access_config_name'] = None
                 return
+
+        roles = user_roles[self.guild_id]
+        #log.info(f'roles: {roles}')
+        self._get_user_auth(roles)
 
         # Check required roles.
         has_required_role = any(role[0] in user_guilds
@@ -285,6 +369,9 @@ class DiscordAuth(OAuth2Base):
 
         session['id'] = user['id']
         session['username'] = user['username']
+        #self.username = user['username']
+        #global usrName
+        #usrName = user['username']
         session['token'] = {
             'access_token': token['access_token'],
             'refresh_token': token['refresh_token'],
