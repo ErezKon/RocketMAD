@@ -17,7 +17,7 @@ const rarityNames = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Ultra Rare', 'N
 // FontAwesome gender classes.
 const genderClasses = ['fa-mars', 'fa-venus', 'fa-neuter']
 var pokemonSearchList = []
-const availablePokemonCount = 809
+const availablePokemonCount = 1010
 const pokemonIds = new Set()
 
 function initPokemonData() {
@@ -45,6 +45,8 @@ function initPokemonData() {
                 gen = 7
             } else if (id <= 898) {
                 gen = 8
+            } else if (id <= 1010) {
+                gen = 9
             }
             pokemonData[id].gen = gen
             pokemonSearchList.push({
@@ -150,15 +152,18 @@ function getPokemonGen(id) {
 }
 
 function getMoveName(id) {
-    return i18n(moveData[id].name)
+    const n = moveData[id].name
+    return i18n(n ? n : 'move_' + id)
 }
 
 function getMoveType(id) {
-    return i18n(moveData[id].type)
+    const n = moveData[id].type
+    return i18n(n ? n : 'move_type_' + id)
 }
 
 function getMoveTypeNoI8ln(id) {
-    return moveData[id].type
+    const n = moveData[id].type
+    return n ? n : 'move_type_' + id
 }
 
 function getPokemonRarity(pokemonId) {

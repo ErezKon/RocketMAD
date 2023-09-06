@@ -6,7 +6,8 @@ settingsSideNav:writable, startFollowingUser, startLocationMarker,
 stopFollowingUser, updateExParks, updateGyms, updateNestParks, updateNests,
 updateMap, updatePokestops, updatePokemons, updateS2Overlay,
 updateScannedLocations, updateSpawnpoints, updateStartLocationMarker,
-updateUserLocationMarker, updateWeatherButton, updateWeathers, setQuestFormFilter
+updateUserLocationMarker, updateWeatherButton, updateWeathers, setQuestFormFilter,
+removeRoutes
 */
 /* exported initBackupModals, initInvasionFilters, initItemFilters, initPokemonFilters, initSettings, initSettingsSidebar */
 
@@ -96,6 +97,7 @@ function initSettings() {
     }
     if (serverSettings.quests) {
         settings.filterQuests = Store.get('filterQuests')
+        settings.filterQuestsAr = Store.get('filterQuestsAr')
         settings.excludedQuestPokemon = Store.get('excludedQuestPokemon')
         settings.questFormFilter = Store.get('questFormFilter')
         settings.excludedQuestItems = Store.get('excludedQuestItems')
@@ -112,6 +114,10 @@ function initSettings() {
     }
     if (serverSettings.lures) {
         settings.notifLureTypes = Store.get('notifLureTypes')
+    }
+
+    if (serverSettings.routes) {
+        settings.showRoutes = Store.get('showRoutes')
     }
 
     settings.showWeather = serverSettings.weather && Store.get('showWeather')
@@ -799,6 +805,13 @@ function initSettingsSidebar() {
             Store.set('showQuests', this.checked)
         })
 
+        $('#filter-quests-ar').on('change', function () {
+            settings.filterQuestsAr = this.checked
+            Store.set('filterQuestsAr', this.checked)
+            updatePokestops()
+            updateMap({ loadAllPokestops: true })
+        })
+
         $('#filter-quests-switch').on('change', function () {
             settings.filterQuests = this.checked
             const filterButton = $('a[data-target="quest-filter-modal"]')
@@ -853,6 +866,18 @@ function initSettingsSidebar() {
             updatePokestops()
             updateMap({ loadAllPokestops: true })
             Store.set('includedLureTypes', settings.includedLureTypes)
+        })
+    }
+
+    if (serverSettings.routes) {
+        $('#routes-switch').on('change', function () {
+            settings.showRoutes = this.checked
+            if (this.checked) {
+                updateMap({ loadAllRoutes: true })
+            } else {
+                removeRoutes()
+            }
+            Store.set('showRoutes', this.checked)
         })
     }
 
@@ -1513,7 +1538,7 @@ function initSettingsSidebar() {
 
     $('#settings-file-input').on('change', function () {
         function loaded(e) {
-            const confirmed = confirm('Are you sure you want to import settings?')
+            const confirmed = confirm(i18n('Are you sure you want to import settings?'))
             if (!confirmed) {
                 return
             }
@@ -1538,7 +1563,7 @@ function initSettingsSidebar() {
     })
 
     $('#load-settings-select').on('change', function () {
-        const confirmed = confirm(`Are you sure you want to load the saved settings "${this.value}" and replace all current ones?`)
+        const confirmed = confirm(`${i18n('Are you sure you want to load the saved settings')} "${this.value}" ${i18n('and replace all current ones?')}`)
         if (confirmed) {
             Store.restore(JSON.parse(settings.savedSettings[this.value]))
             window.location.reload()
@@ -1546,7 +1571,7 @@ function initSettingsSidebar() {
     })
 
     $('#delete-settings-select').on('change', function () {
-        const confirmed = confirm(`Are you sure you want to delete the saved settings named "${this.value}"?`)
+        const confirmed = confirm(`${i18n('Are you sure you want to delete the saved settings named')} "${this.value}"?`)
         if (confirmed) {
             delete settings.savedSettings[this.value]
             Store.set('savedSettings', settings.savedSettings)
@@ -1555,7 +1580,7 @@ function initSettingsSidebar() {
     })
 
     $('#save-settings-button').on('click', function () {
-        const settingsName = prompt('Please state a name for this set of settings (saved settings with the same name will be overwritten):', 'Setting1')
+        const settingsName = prompt(i18n('Please state a name for this set of settings (saved settings with the same name will be overwritten):'), 'Setting1')
         settings.savedSettings[settingsName.replaceAll(/[^\w-_ ]/gi, '')] = JSON.stringify(Store.dump())
         Store.set('savedSettings', settings.savedSettings)
         refreshSavedSettings()
@@ -1566,7 +1591,7 @@ function initSettingsSidebar() {
     })
 
     $('#reset-settings-button').on('click', function () {
-        const confirmed = confirm('Are you sure you want to reset all settings to default values?')
+        const confirmed = confirm(i18n('Are you sure you want to reset all settings to default values?'))
         if (confirmed) {
             localStorage.clear()
             window.location.reload()
@@ -1663,6 +1688,7 @@ function initSettingsSidebar() {
     if (serverSettings.quests) {
         $('#quest-switch').prop('checked', settings.showQuests)
         $('#filter-quests-switch-wrapper').toggle(settings.showQuests)
+        $('#filter-quests-ar').prop('checked', settings.filterQuestsAr)
         $('#filter-quests-switch').prop('checked', settings.filterQuests)
         $('a[data-target="quest-filter-modal"]').toggle(settings.filterQuests)
         $('#quest-form-filter').val(settings.questFormFilter)
@@ -1675,6 +1701,11 @@ function initSettingsSidebar() {
     }
     if (serverSettings.lures) {
         $('#lure-type-select').val(settings.includedLureTypes)
+    }
+
+    // Routes.
+    if (serverSettings.routes) {
+        $('#routes-switch').prop('checked', settings.showRoutes)
     }
 
     // Weather.

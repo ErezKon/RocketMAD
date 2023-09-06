@@ -276,7 +276,7 @@ const StoreOptions = {
         type: StoreTypes.Boolean
     },
     includedRaidLevels: {
-        default: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        default: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15],
         type: StoreTypes.JSON
     },
     raidNotifs: {
@@ -309,6 +309,10 @@ const StoreOptions = {
     },
     filterQuests: {
         default: false,
+        type: StoreTypes.Boolean
+    },
+    filterQuestsAr: {
+        default: true,
         type: StoreTypes.Boolean
     },
     questFormFilter: {
@@ -370,6 +374,10 @@ const StoreOptions = {
     notifLureTypes: {
         default: [],
         type: StoreTypes.JSON
+    },
+    showRoutes: {
+        default: false,
+        type: StoreTypes.Boolean
     },
     showWeather: {
         default: false,
