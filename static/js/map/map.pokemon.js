@@ -342,6 +342,7 @@ function pokemonLabel(item) {
               <div class='coordinates'>
                 ${nearbyStopWarning}
                 <a href='javascript:void(0);' onclick='javascript:openMapDirections(${latitude},${longitude},"${settings.mapServiceProvider}");' class='link-button' title='${i18n('Open in')} ${mapServiceProviderNames[settings.mapServiceProvider]}'><i class="fas fa-map-marked-alt"></i> ${latitude.toFixed(5)}, ${longitude.toFixed(5)}</a>
+                <i class="fa-solid fa-location-pin" onclick="javascript:sendGil(${latitude},${longitude})"></i>
               </div>
               <div>
                 <a href='javascript:togglePokemonNotif(${id})' class='link-button' title="${notifText}"><i class="${notifIconClass}"></i></a>

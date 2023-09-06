@@ -226,7 +226,7 @@ function updateGymSidebar(id) {
     }
     $('#sidebar-gym-last-scanned').text(timestampToDateTime(gym.last_scanned))
     $('#sidebar-gym-last-modified').text(timestampToDateTime(gym.last_modified))
-    $('#sidebar-gym-coordinates-container').html(`<a href='javascript:void(0);' onclick='javascript:openMapDirections(${gym.latitude},${gym.longitude},"${settings.mapServiceProvider}");' title='${i18n('Open in')} ${mapServiceProviderNames[settings.mapServiceProvider]}'><i class="fas fa-map-marked-alt"></i> ${gym.latitude.toFixed(5)}, ${gym.longitude.toFixed(5)}</a>`)
+    $('#sidebar-gym-coordinates-container').html(`<a href='javascript:void(0);' onclick='javascript:openMapDirections(${gym.latitude},${gym.longitude},"${settings.mapServiceProvider}");' title='${i18n('Open in')} ${mapServiceProviderNames[settings.mapServiceProvider]}'><i class="fas fa-map-marked-alt"></i> ${gym.latitude.toFixed(5)}, ${gym.longitude.toFixed(5)}</a><div><i class="fa-solid fa-location-pin" onclick="javascript:sendGil(${gym.latitude},${gym.longitude})"></i></div>`)
 
     if (isGymMeetsRaidFilters(gym)) {
         const raid = gym.raid
@@ -474,6 +474,7 @@ function gymLabel(gym) {
               </div>
               <div>
                 <a href='javascript:void(0);' onclick='javascript:openMapDirections(${gym.latitude},${gym.longitude},"${settings.mapServiceProvider}");' title='${i18n('Open in')} ${mapServiceProviderNames[settings.mapServiceProvider]}'><i class="fas fa-map-marked-alt"></i> ${gym.latitude.toFixed(5)}, ${gym.longitude.toFixed(5)}</a>
+                <div><i class="fa-solid fa-location-pin" onclick="javascript:sendGil(${gym.latitude},${gym.longitude})"></i></div>
               </div>
             </div>
           </div>

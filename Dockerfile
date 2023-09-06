@@ -16,7 +16,6 @@ RUN apt-get update \
         python3 \
         build-essential\
  && npm install
-
 COPY Gruntfile.js static01.zip /usr/src/app/
 COPY static /usr/src/app/static
 
@@ -45,7 +44,6 @@ EXPOSE 5000
 
 # Copy everything to the working directory (Python files, templates, config) in one go.
 COPY . /usr/src/app
-
 # Remove samples to allow mounting config directory from outside the container
 RUN rm -rf /usr/src/app/config
 

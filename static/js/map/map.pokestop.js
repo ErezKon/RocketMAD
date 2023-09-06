@@ -390,6 +390,7 @@ function pokestopLabel(pokestop) {
               </div>
               <div>
                 <a href='javascript:void(0);' onclick='javascript:openMapDirections(${pokestop.latitude},${pokestop.longitude},"${settings.mapServiceProvider}");' title='${i18n('Open in')} ${mapServiceProviderNames[settings.mapServiceProvider]}'><i class="fas fa-map-marked-alt"></i> ${pokestop.latitude.toFixed(5)}, ${pokestop.longitude.toFixed(5)}</a>
+                <div><i class="fa-solid fa-location-pin" onclick="javascript:sendGil(${pokestop.latitude},${pokestop.longitude})"></i></div>
               </div>
             </div>
           </div>

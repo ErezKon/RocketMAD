@@ -127,7 +127,16 @@ function showImageModal(url, title) {
     instance.open()
 }
 
+function sendGil(lat, lng) {
+    console.log(`sending Gil1 to ${lat},${lng}`);
+    const url = `https://213.57.171.199:20200/send_gps?origin=Gil1&coords=${lat},${lng}&sleeptime=0`;
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", url, true ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
 function openMapDirections(lat, lng, mapServiceProvider) { // eslint-disable-line no-unused-vars
+    sendGil(lat, lng);
     let url = ''
     switch (mapServiceProvider) {
         case 'googlemaps':

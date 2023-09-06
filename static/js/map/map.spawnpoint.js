@@ -86,6 +86,7 @@ function spawnpointLabel(spawnpoint) {
         </div>
         <div>
           <a href='javascript:void(0);' onclick='javascript:openMapDirections(${spawnpoint.latitude},${spawnpoint.longitude},"${settings.mapServiceProvider}");' class='link-button' title='${i18n('Open in')} ${mapServiceProviderNames[settings.mapServiceProvider]}'><i class="fas fa-map-marked-alt"></i> ${spawnpoint.latitude.toFixed(5)}, ${spawnpoint.longitude.toFixed(5)}</a>
+          <i class="fa-solid fa-location-pin" onclick="javascript:sendGil(${spawnpoint.latitude},${spawnpoint.longitude})"></i>
         </div>`
 }
 
