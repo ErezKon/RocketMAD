@@ -22,6 +22,7 @@ class DiscordAuth(OAuth2Base):
 
     def __init__(self):
         self.guild_id = '734716032270336110'
+        self.rl_premium_role = '1155481931736174642'
         self.premium_role = '755468514180988952'
         self.advanced_role = '734762107328790588'
         self.basic_role = '755467984721674363'
@@ -225,8 +226,8 @@ class DiscordAuth(OAuth2Base):
 
         for role in roles:
             #log.info(f'comparing {role} to {self.premium_role}')
-            if role == self.premium_role:
-                #log.info('found premium')
+            if role == self.premium_role or role == self.rl_premium_role:
+                #log.info(role + ' logged in as premium')
                 is_premium = True
             #log.info(f'comparing {role} to {self.advanced_role}')
             if role == self.advanced_role:
