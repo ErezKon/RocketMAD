@@ -96,7 +96,7 @@
             </ul>
             <ul class="right">
               {% if settings.username %}
-              <li style="color: black; text-decoration: underline; font-weight: bold;">Logged in as {{settings.username}}</li>
+              <li class="logged-as">Logged in as {{settings.username}}</li>
               {% endif %}
               {% set use_dropdown = discord_url or messenger_url or telegram_url or whatsapp_url or patreon_url or donate_url or madmin_url or admin or pokemon_history_page or quest_page or client_auth %}
               <li><a data-target="weather-modal" id="weather-button" class="modal-trigger" title="Weather" style="display:none;"><i class="material-icons"></i></a></li>
