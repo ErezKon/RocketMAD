@@ -54,6 +54,7 @@ class Pokemon(db.Model):
     last_modified = db.Column(db.DateTime)
     seen_type = db.Column(db.String)
     fort_id = db.Column(db.String)
+    size = db.Column(db.SmallInteger)
 
     __table_args__ = (
         Index('pokemon_spawnpoint_id', 'spawnpoint_id'),
@@ -77,7 +78,8 @@ class Pokemon(db.Model):
             Pokemon.cp, Pokemon.cp_multiplier, Pokemon.weight, Pokemon.height,
             Pokemon.gender, Pokemon.form, Pokemon.costume,
             Pokemon.catch_prob_1, Pokemon.catch_prob_2, Pokemon.catch_prob_3,
-            Pokemon.weather_boosted_condition, Pokemon.last_modified, Pokemon.seen_type
+            Pokemon.weather_boosted_condition, Pokemon.last_modified, Pokemon.seen_type,
+            Pokemon.size
         ]
 
         if verified_despawn_time:
@@ -586,8 +588,12 @@ class Pokestop(db.Model):
 
             if incident_orm is not None:
                 pokestop['incident_expiration'] = incident_orm.incident_expiration
-                if incident_orm.incident_display_type == 8:
+                if incident_orm.incident_display_type == 7:
+                    pokestop['incident_grunt_type'] = 998
+                elif incident_orm.incident_display_type == 8:
                     pokestop['incident_grunt_type'] = 352
+                elif incident_orm.incident_display_type == 9:
+                    pokestop['incident_grunt_type'] = 9001
                 else:
                     pokestop['incident_grunt_type'] = incident_orm.character_display
             else:

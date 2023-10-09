@@ -28,6 +28,8 @@ function initSettings() {
     }
     if (serverSettings.pokemonValues) {
         settings.filterPokemonByValues = Store.get('filterPokemonByValues')
+        settings.filterPokemonBySize = Store.get('filterPokemonBySize')
+        settings.filterPokemonBySizeOptions = Store.get('filterPokemonBySizeOptions')
         settings.noFilterValuesPokemon = Store.get('noFilterValuesPokemon')
         settings.minIvs = Store.get('minIvs')
         settings.maxIvs = Store.get('maxIvs')
@@ -236,6 +238,25 @@ function initSettingsSidebar() {
             settings.pokemonIconSizeModifier = iconSize
             updatePokemons()
             Store.set('pokemonIconSizeModifier', iconSize)
+        })
+
+        $('#filter-by-size-switch').on('change', function () {
+            settings.filterPokemonBySize = this.checked
+            const sizeFilterOptions = $('#filter-by-size-select').closest('.form-control')
+            if (this.checked) {
+                sizeFilterOptions.show()
+            } else {
+                sizeFilterOptions.hide()
+                updateMap({ loadAllPokemon: true })
+            }
+            updatePokemons()
+            Store.set('filterPokemonBySize', this.checked)
+        })
+
+        $('#filter-by-size-select').on('change', function () {
+            settings.filterPokemonBySizeOptions = $(this).val().map(Number)
+            updateMap({ loadAllPokemon: true })
+            Store.set('filterPokemonBySizeOptions', $(this).val().map(Number))
         })
     }
 
@@ -1621,6 +1642,9 @@ function initSettingsSidebar() {
         $('#hundo-ivs-pokemon-switch-wrapper').toggle(settings.maxIvs < 100)
         $('#pokemon-level-slider-title').text(`${i18n('Levels')} (${settings.minLevel} - ${settings.maxLevel})`)
         $('#pokemon-level-slider-wrapper').toggle(settings.filterPokemonByValues)
+        $('#filter-by-size-switch').prop('checked', settings.filterPokemonBySize)
+        $('#filter-by-size-select').val(settings.filterPokemonBySizeOptions)
+        $('#filter-by-size-select').closest('.form-control').toggle(settings.filterPokemonBySize)
         if (serverSettings.highlightPokemon) {
             $('#pokemon-highlight-switch').prop('checked', settings.highlightPokemon)
             $('#highlight-pokemon-wrapper').toggle(settings.highlightPokemon)
@@ -2277,7 +2301,11 @@ function initItemFilters() {
 }
 
 function initInvasionFilters() {
-    const invasionIds = new Set([41, 42, 43, 44, 5, 4, 6, 7, 10, 11, 12, 13, 49, 50, 14, 15, 16, 17, 18, 19, 20, 21, 47, 48, 22, 23, 24, 25, 26, 27, 30, 31, 32, 33, 34, 35, 36, 37, 28, 29, 38, 39, 352, 500, 501, 502, 504, 506, 507])
+    const invasionIds = new Set([41, 42, 43, 44, 5, 4, 6, 7, 10, 11, 12, 13,
+                                 49, 50, 14, 15, 16, 17, 18, 19, 20, 21, 47,
+                                 48, 22, 23, 24, 25, 26, 27, 30, 31, 32, 33,
+                                 34, 35, 36, 37, 28, 29, 38, 39, 352, 998,
+                                 9001, 500, 501, 502, 504, 506, 507])
 
     class InvasionFilterManager extends FilterManager {
         getListSelector() { return '.invasion-filter-list' }
